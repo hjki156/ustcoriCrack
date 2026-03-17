@@ -1,0 +1,55 @@
+name: Build and publish .NET on Windows
+
+于:
+  push:
+    分支: [ "main" ]
+  pull_request:
+    分支: [ "main" ]
+
+env:
+  # 根据你的项目结构调整
+  PROJECT_PATH: ustori_crack/ustori_crack.csproj
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v5
+      with:
+        dotnet-version: '4.5.x'
+
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: Build
+      run: dotnet build --no-restore -c Release
+
+  publish:
+    needs: build
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v5
+      with:
+        dotnet-version: '4.5.x'
+
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: Publish win-x64
+      run: dotnet publish ${{ env.PROJECT_PATH }} -c Release -r win-x64 --self-contained true -o ./publish
+
+    - name: Upload win-x64 artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: win-x64-publish
+        path: ./publish
